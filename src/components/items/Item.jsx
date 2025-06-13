@@ -1,31 +1,35 @@
-import { useContext } from "react";
-import { CartContext } from "../../contexts/CartContext";
+import { Link } from "react-router-dom";
+import { useAppContext } from "../../contexts/AppContext";
 
 function Item({ id, img, category, name, price }) {
-  const {cart,setCart} = useContext(CartContext)
+  const { addItem } = useAppContext();
 
-  function addItem() {
-    const newItem = {id, name, img, category, price, quantity: 1}
-    const existingItem = cart.find(ele => newItem.id == ele.id);
-    if (existingItem) {
-      setCart(
-        cart.map(ele => ele.id == newItem.id ? {...ele, quantity: ele.quantity + 1} : ele)
-      )
-    } else {
-      setCart([...cart, newItem])
-    }
-  }
+  const handleAddItem = () => {
+    addItem(id, name, img, category, price);
+  };
+
   return (
-    <div className="group w-[218px] h-auto mb-10">
-      <div className="image h-[230px] hover:w-[226px] hover:h-[246px] hover:shadow-xl">
-      <img src={img} alt="image" className="object-cover w-full h-full" />
-      </div>
-      <div className="txt w-80 my-2 text-2xl px-1 flex flex-col gap-[2px]">
-        <span className="type text-base">{category}</span>
-        <p className="name font-semibold text-base">{name}</p>
-        <p className="price font-semibold text-base">{price}</p>
-      </div>
-      <button className="border border-black rounded-lg font-bold text-xl px-[46px] py-3 hover:bg-dark-blue hover:text-transparent hover:bg-clip-text group-hover:border-dark-blue group-hover:text-dark-blue hover:border-0" onClick={addItem}>
+    <div className="group w-full max-w-xs mx-auto h-auto mb-10">
+      <Link to={`/product/${id}`}>
+        <div className="image w-full h-56 sm:h-[230px] hover:shadow-xl transition">
+          <img
+            src={img}
+            alt={name}
+            className="object-cover w-full h-full mb-4 rounded"
+          />
+        </div>
+        <div className="txt w-full my-2 text-lg px-1 flex flex-col gap-[2px]">
+          <span className="type text-base">{category}</span>
+          <p className="name font-semibold text-base">{name}</p>
+          <p className="price font-semibold text-base">
+            ₦{price.toLocaleString()}
+          </p>
+        </div>
+      </Link>
+      <button
+        className="w-full border border-black rounded-lg font-bold text-base py-3 hover:bg-dark-blue hover:text-white hover:border-0 transition"
+        onClick={handleAddItem}
+      >
         Add to Cart
       </button>
     </div>

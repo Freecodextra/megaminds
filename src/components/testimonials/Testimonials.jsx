@@ -34,17 +34,15 @@ function Testimonials() {
     },
   ];
   return (
-    <div className="flex items-center justify-center max-md:mx-6">
-      <div className="lg:mt-32 mt-20 lg:w-[1000px]">
+    <div className="w-full max-w-6xl mx-auto px-4 flex items-center justify-center">
+      <div className="lg:mt-24 mt-20 w-full">
         <h1 className="lg:text-4xl text-3xl font-bold text-center">
           Hear from our customers
         </h1>
-        <div className="lg:mt-32 mt-20 flex pt-20 overflow-x-scroll lg:gap-6 gap-3 w-[340px] md:w-[700px] lg:w-auto">
-          {
-                testimonies.map((testimony, index)=> {
-                return <Testimonial key={index} {...testimony} />
-                })
-            }
+        <div className="lg:mt-10 mt-8 flex pt-20 overflow-x-scroll lg:gap-6 gap-3 w-full relative">
+          {testimonies.map((testimony, index) => {
+            return <Testimonial key={index} {...testimony} />;
+          })}
         </div>
       </div>
     </div>

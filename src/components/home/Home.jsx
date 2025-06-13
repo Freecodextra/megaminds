@@ -11,7 +11,7 @@ function Home() {
     <>
       <Hero />
       <NewArrival />
-      <Deal />
+      {/* <Deal /> */}
       <Styles />
       <Testimonials />
       <Faq />

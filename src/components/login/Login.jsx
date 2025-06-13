@@ -7,6 +7,18 @@ import GoogleIcon from "../../assets/images/Rectangle.png";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function handleLogin() {
+    setLoading(true);
+    setError("");
+    if (!email || !password) {
+      setError("Please fill in all fields");
+      setLoading(false);
+      return;
+    }
+  }
   return (
     <div className="mt-36 lg:mx-52 mx-20 flex lg:gap-10 items-center justify-center">
       <div className="left flex max-md:hidden flex-col items-center justify-center">
@@ -17,6 +29,12 @@ function Login() {
         <div className="head flex flex-col justify-center gap-10">
           <h1 className="text-4xl font-bold">Login</h1>
         </div>
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4">
+            <strong className="font-bold">Error! </strong>
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
         <div className="flex flex-col justify-center items-center mt-14">
           <Input
             type="email"
@@ -32,8 +50,9 @@ function Login() {
             onChange={(event) => setPassword(event.target.value)}
             value={password}
           />
-          <button className="lg:px-[240px] px-28 lg:py-4 py-3 rounded-[8px] font-bold bg-dark-blue hover:bg-[#000074] text-white text-2xl">
-            Login
+          <button className="lg:px-[240px] px-28 lg:py-4 py-3 rounded-[8px] font-bold bg-dark-blue hover:bg-[#000074] text-white text-2xl" onClick={handleLogin} disabled={loading}>
+           Login
+            {loading ? <span className="animate-pulse">...</span> : null}
           </button>
           <p className="lg:w-[550px] w-[293px] mt-4 text-[#575757]">
             Dont have an account?{" "}
@@ -49,7 +68,7 @@ function Login() {
           </span>
         </div>
         <div className="flex items-center justify-center mt-6 w-full">
-          <button className="lg:px-[100px] px-4 lg:py-2 rounded-[8px] font-bold border border-black text-[#575757] flex items-center justify-center">
+          <button className="lg:px-[162px] px-8 lg:py-2 rounded-[8px] font-bold border border-black text-[#575757] flex items-center justify-center">
             <img src={GoogleIcon} alt="" />
             Sign In with Google
           </button>

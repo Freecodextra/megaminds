@@ -2,38 +2,52 @@ import logo from "../../assets/images/logo.png";
 import downArrow from "../../assets/images/down-arrow.png";
 import sideArrow from "../../assets/images/side-arrow.png";
 import close from "../../assets/images/Close search bar button.png";
-import { NavLink, useNavigate } from "react-router-dom";
-import { CartContext } from "../../contexts/CartContext";
-import { useContext, useState, useRef } from "react";
+import { NavLink } from "react-router-dom";
+import { useState, useRef } from "react";
+import { useAppContext } from "../../contexts/AppContext";
 
 function Navbar() {
-  const navigate = useNavigate();
-  const { cart } = useContext(CartContext);
+  const { navigate, cart, searchTerm, setSearchTerm } = useAppContext();
   const [isOpen, setIsOpen] = useState(true);
   const [searchOpen, setSearchOpen] = useState(true);
-  const  navbar = useRef(0)
-  const  searchbar = useRef(0)
+  const navbar = useRef(0);
+  const searchbar = useRef(0);
   const toggleMenu = () => {
     if (isOpen) {
-      navbar.current.classList.add("left-0")
-      navbar.current.classList.remove("-left-full")
-      document.body.style.overflow = 'hidden';
+      navbar.current.classList.add("left-0");
+      navbar.current.classList.remove("-left-full");
+      document.body.style.overflow = "hidden";
     } else {
-      navbar.current.classList.remove("left-0")
-      navbar.current.classList.add("-left-full")
-      document.body.style.overflow = 'auto';
+      navbar.current.classList.remove("left-0");
+      navbar.current.classList.add("-left-full");
+      document.body.style.overflow = "auto";
     }
-    setIsOpen(!isOpen)
-  }
+    setIsOpen(!isOpen);
+  };
 
   const openSearch = () => {
-    setSearchOpen((search) => !search)
-    searchOpen ? searchbar.current.classList.remove("hidden") : searchbar.current.classList.add("hidden")
-  }
+    setSearchOpen((search) => !search);
+    searchOpen
+      ? searchbar.current.classList.remove("hidden")
+      : searchbar.current.classList.add("hidden");
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && searchTerm.trim() !== "") {
+      setSearchOpen(false);
+      searchbar.current.classList.add("hidden");
+      navigate(`/all-products?search=${encodeURIComponent(searchTerm.trim())}`);
+      setSearchTerm("");
+    }
+  };
+
   return (
-    <div className="flex item-center justify-between lg:justify-center gap-x-[105px] w-full py-4 lg:py-5 px-5 lg:px-36 text-xl fixed top-0 bg-white z-50 shadow-md">
+    <div className="flex item-center justify-between lg:justify-center gap-x-[140px] w-full py-4 lg:py-5 px-5 lg:px-36 text-xl fixed top-0 bg-white z-50 shadow-md">
       <Logo />
-      <div className="hamburger lg:hidden flex items-center justify-end pointer" onClick={toggleMenu}>
+      <div
+        className="hamburger lg:hidden flex items-center justify-end pointer"
+        onClick={toggleMenu}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="30"
@@ -47,12 +61,19 @@ function Navbar() {
         </svg>
       </div>
       {/* Mobile NavBar */}
-      <div id="mobile-navbar" className="lg:hidden absolute top-24 -left-full bg-white w-full px-8 h-screen transition-all duration-200" ref={navbar}>
+      <div
+        id="mobile-navbar"
+        className="lg:hidden absolute top-24 -left-full bg-white w-full px-8 h-screen transition-all duration-200"
+        ref={navbar}
+      >
         <ul>
-          <li className="hover:text-dark-blue hover:underline my-3" onClick={toggleMenu}>
+          <li
+            className="hover:text-dark-blue hover:underline my-3"
+            onClick={toggleMenu}
+          >
             <NavLink to="/">Home</NavLink>
           </li>
-          <li className="group my-3">
+          <li className="group my-4">
             <div className="flex gap-2 items-center">
               <span>Clothing</span>
               <img
@@ -62,25 +83,43 @@ function Navbar() {
               />
             </div>
             <ul className="hidden group-hover:block mx-4">
-              <li className="hover:text-dark-blue hover:underline my-4" onClick={toggleMenu}>
+              <li
+                className="hover:text-dark-blue hover:underline my-4"
+                onClick={toggleMenu}
+              >
                 <NavLink to="/men">Men</NavLink>
               </li>
-              <li className="hover:text-dark-blue hover:underline my-4" onClick={toggleMenu}>
+              <li
+                className="hover:text-dark-blue hover:underline my-4"
+                onClick={toggleMenu}
+              >
                 <NavLink to="/women">Women</NavLink>
               </li>
             </ul>
           </li>
-          <li className="hover:text-dark-blue hover:underline my-4" onClick={toggleMenu}>
+          <li
+            className="hover:text-dark-blue hover:underline my-4"
+            onClick={toggleMenu}
+          >
             <NavLink to="/shoes">Shoes</NavLink>
           </li>
-          <li className="hover:text-dark-blue hover:underline my-4" onClick={toggleMenu}>
+          <li
+            className="hover:text-dark-blue hover:underline my-4"
+            onClick={toggleMenu}
+          >
             <NavLink to="/about">About Us</NavLink>
           </li>
-          <li className="hover:text-dark-blue hover:underline my-4" onClick={toggleMenu}>
+          <li
+            className="hover:text-dark-blue hover:underline my-4"
+            onClick={toggleMenu}
+          >
             <NavLink to="/cart">My Cart</NavLink>
           </li>
-          <li className="hover:text-dark-blue hover:underline my-4" onClick={toggleMenu}>
-            <NavLink to="/">My Profile</NavLink>
+          <li
+            className="hover:text-dark-blue hover:underline my-4"
+            onClick={toggleMenu}
+          >
+            <NavLink to="/profile">My Profile</NavLink>
           </li>
         </ul>
       </div>
@@ -128,15 +167,32 @@ function Navbar() {
           <li className="hover:text-dark-blue hover:underline">
             <NavLink to="/about">About Us</NavLink>
           </li>
-          <li>
+          {/* <li>
             <OrderNow />
-          </li>
+          </li> */}
         </ul>
       </div>
       <div className="icons lg:flex space-x-5 items-center relative hidden">
-        <div className="search absolute right-2 top-16 hidden" ref={searchbar}>
-          <input type="search" name="" id="" className="w-[777px] bg-light-gray py-4 px-4 rounded-[20px] focus:outline-0 shadow-lg" placeholder="Search..." />
-          <img src={close} alt="" className="absolute right-5 top-5 z-10 cursor-pointer" onClick={openSearch} />
+        <div className="search absolute right-36 top-24 hidden" ref={searchbar}>
+          <input
+            type="search"
+            name=""
+            id=""
+            value={searchTerm}
+            style={{
+              boxShadow: "0px 26px 100px 0px #fffff",
+            }}
+            className="w-[777px] bg-gray-100 p-7 rounded-[20px] focus:outline-0"
+            placeholder="Search products..."
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <img
+            src={close}
+            alt=""
+            className="absolute right-5 top-7 z-10 cursor-pointer"
+            onClick={openSearch}
+          />
         </div>
         {/* search */}
         <svg
@@ -161,7 +217,7 @@ function Navbar() {
             </clipPath>
           </defs>
         </svg>
-        {/* PRofile */}
+        {/* Profile */}
         <svg
           width="24"
           height="24"
@@ -169,6 +225,7 @@ function Navbar() {
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className="group cursor-pointer"
+          onClick={() => navigate("/profile")}
         >
           <g clipPath="url(#clip0_259_2307)">
             <path
@@ -239,8 +296,12 @@ function Navbar() {
 }
 
 export function OrderNow() {
+  const { navigate } = useAppContext();
   return (
-    <button className="px-5 py-3 border-2 border-dark-blue/50 rounded-md bg-white text-dark-blue font-bold hover:bg-dark-blue hover:text-white">
+    <button
+      className="px-5 py-3 border-2 border-dark-blue/50 rounded-md bg-white text-dark-blue font-bold hover:bg-dark-blue hover:text-white"
+      onClick={() => navigate("/all-products")}
+    >
       Order Now
     </button>
   );
