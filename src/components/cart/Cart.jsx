@@ -2,7 +2,7 @@ import { useAppContext } from "../../contexts/AppContext";
 import { Link } from "react-router-dom";
 
 function Cart() {
-  const { cart, addQuantity, removeQuantity, removeCartItem, total } = useAppContext();
+  const { cart, addQuantity, removeQuantity, handleRemoveCartItem, total } = useAppContext();
 
   if (!cart || cart.length === 0) {
     return (
@@ -42,7 +42,7 @@ function Cart() {
                     className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-lg font-bold hover:bg-gray-100"
                   >+</button>
                   <button
-                    onClick={() => removeCartItem(item.id)}
+                    onClick={() => handleRemoveCartItem(item.id)}
                     className="ml-6 text-red-500 hover:underline text-sm"
                   >Remove</button>
                 </div>

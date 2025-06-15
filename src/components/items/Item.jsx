@@ -2,10 +2,10 @@ import { Link } from "react-router-dom";
 import { useAppContext } from "../../contexts/AppContext";
 
 function Item({ id, img, category, name, price }) {
-  const { addItem } = useAppContext();
-
-  const handleAddItem = () => {
-    addItem(id, name, img, category, price);
+  const { handleAddItem } = useAppContext();
+  // Function to handle adding item to cart
+  const addItem = () => {
+    handleAddItem(id);
   };
 
   return (
@@ -28,7 +28,7 @@ function Item({ id, img, category, name, price }) {
       </Link>
       <button
         className="w-full border border-black rounded-lg font-bold text-base py-3 hover:bg-dark-blue hover:text-white hover:border-0 transition"
-        onClick={handleAddItem}
+        onClick={addItem}
       >
         Add to Cart
       </button>

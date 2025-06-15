@@ -1,4 +1,3 @@
-
 import { useAppContext } from "../../contexts/AppContext";
 import Product from "../product/Product";
 
@@ -14,7 +13,14 @@ function NewArrival() {
       </div>
       <div className="products flex lg:flex-row flex-col justify-center items-center lg:mt-16 mt-5 gap-16">
         {arrivals.map((arrival) => (
-          <Product key={arrival.id} {...arrival} />
+          <Product
+            key={arrival.id}
+            id={arrival.id}
+            category={arrival.category} // Product.jsx expects category object
+            name={arrival.name}
+            price={Number(arrival.price)}
+            image={arrival.image}
+          />
         ))}
       </div>
     </div>

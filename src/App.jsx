@@ -13,6 +13,7 @@ import AppContextProvider from "./contexts/AppContext"
 import ProductDetails from "./components/products/ProductDetails"; 
 import { Toaster } from "react-hot-toast"
 import Profile from "./components/profile/Profile"
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -26,13 +27,25 @@ function App() {
           <Route path="/shoes" element={<Products category="shoes" />} />
           <Route path="/men" element={<Products category="men" />} />
           <Route path="/women" element={<Products category="women" />} />
-          <Route path="/cart" element={<Cart />} />
+          <Route path="/cart" element={
+            <ProtectedRoute>
+              <Cart />
+            </ProtectedRoute>
+          } />
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/checkout" element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          } />
           <Route path="/product/:id" element={<ProductDetails />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
         </Routes>
         <Footer />
         <ScrollToTop />

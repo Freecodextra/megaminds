@@ -1,7 +1,14 @@
-import {createContext, useState, useContext, useEffect} from 'react'
+import { createContext, useState, useContext, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
-import { allProducts, userDetails, orders as initialOrders, transactions as initialTransactions } from '../assets/assets';
+import { allProducts, orders as initialOrders, transactions as initialTransactions } from '../assets/assets';
 import toast from "react-hot-toast";
+import { getUserProfile, setAuthToken, logout as apiLogout, updateUserProfile } from "../api/auth"; // <-- import
+import { mapUser } from "../utils/mapUser";
+import { fetchProductsFromApi } from "../api/products";
+import { fetchCart, addToCart, updateCartItem, removeCartItem, fetchCartItems } from "../api/cart";
+import { placeOrder as apiPlaceOrder, fetchOrders, deleteOrder as apiDeleteOrder } from "../api/order";
+import { fetchPayments } from "../api/payments";
+import axiosInstance from "../api/axiosInstance";
 
 const AppContext = createContext();
 
@@ -14,48 +21,212 @@ export function useAppContext() {
 }
 
 function AppContextProvider({children}) {
-    const [cart, setCart] = useState([]);
     const [user, setUser] = useState(null);
     const [total, setTotal] = useState(0);
     const [products, setProducts] = useState([]);
     const [ordersList, setOrdersList] = useState([]);
     const [transactionsList, setTransactionsList] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [userLoading, setUserLoading] = useState(true);
+    const [cart, setCart] = useState([]);
+    const [cartLoading, setCartLoading] = useState(false);
+    const [productsLoading, setProductsLoading] = useState(true);
+    const [userOrders, setUserOrders] = useState([]); // Declare once at the top
+    const [userTransactions, setUserTransactions] = useState([]);
     const navigate = useNavigate();
 
-    function fetchUser() {
-        setUser(userDetails);
+    // Fetch user from backend using token
+    async function fetchUser() {
+        setUserLoading(true);
+        const access = localStorage.getItem("access");
+        if (access) {
+            setAuthToken(access);
+            try {
+                const res = await getUserProfile();
+                setUser(mapUser(res.data)); // <-- map user here
+            } catch {
+                setUser(null);
+            }
+        } else {
+            setUser(null);
+        }
+        setUserLoading(false);
     }
 
-    function fetchProducts() {
-        setProducts(allProducts);
-    }
-    function fetchOrders() {
-        setOrdersList(initialOrders);
+    async function fetchProducts() {
+        setProductsLoading(true);
+        try {
+            const apiProducts = await fetchProductsFromApi();
+            setProducts(apiProducts);
+        } catch (error) {
+            toast.error("Failed to fetch products from server.");
+            setProducts([]);
+        }
+        setProductsLoading(false);
     }
     function fetchTransactions() {
         setTransactionsList(initialTransactions);
     }
 
+    // Fetch cart from backend
+    async function loadCart() {
+    setCartLoading(true);
+    try {
+        const res = await fetchCartItems();
+        // res.data is an array of cart items
+        setCart(res.data.map(item => ({
+            id: item.id, // cart item id
+            productId: item.product.id, // add this line
+            name: item.product.name,
+            img: item.product.image,
+            category: item.product.category?.name,
+            price: Number(item.product.price),
+            quantity: item.quantity,
+        })));
+    } catch {
+        setCart([]);
+    }
+    setCartLoading(false);
+}
+
     useEffect(() => { fetchProducts(); }, []);
     useEffect(() => { fetchUser(); }, []);
-    useEffect(() => { fetchOrders(); }, []);
     useEffect(() => { fetchTransactions(); }, []);
+    // Call loadCart when user logs in or on mount
+    useEffect(() => {
+        if (user) loadCart();
+        else setCart([]);
+    }, [user]);
 
-    function editUserDetails(firstName, lastName, email, phone, address) {
+    async function loadOrders() {
+      if (user) {
+        try {
+          const res = await fetchOrders();
+          setUserOrders(res.data.map(order => ({
+            id: order.id,
+            date: order.created_at || order.date,
+            status: order.status,
+            address: order.address,
+            total: Number(order.total_price),
+            itemsDetails: order.items.map(item => ({
+              productId: item.product.id,
+              name: item.product.name,
+              quantity: item.quantity,
+            })),
+          })));
+        } catch {
+          setUserOrders([]);
+        }
+      } else {
+        setUserOrders([]);
+      }
+    }
+
+    useEffect(() => {
+      loadOrders();
+    }, [user]);
+
+    async function editUserDetails(firstName, lastName, email, phone, address) {
         if (!firstName || !lastName || !email) {
             toast.error("All fields are required!");
             return;
         }
-        setUser(prevUser => ({
-            ...prevUser,
-            firstName,
-            lastName,
-            email,
-            phone,
-            address
-        }));
-        toast.success("User details updated successfully!");
+        try {
+            const res = await updateUserProfile({
+                first_name: firstName,
+                last_name: lastName,
+                email,
+                phone,
+                address
+            });
+            setUser(mapUser(res.data));
+            toast.success("User details updated successfully!");
+        } catch (error) {
+            toast.error("Failed to update user details.");
+        }
+    }
+
+    // Add item to cart (only if logged in)
+    async function handleAddItem(productId, quantity = 1) {
+        if (!user) {
+            toast.error("You must be logged in to add items to cart.");
+            navigate("/login");
+            return;
+        }
+        // Find product to check stock
+        const product = products.find(p => p.id === productId);
+        if (!product) {
+            toast.error("Product not found.");
+            return;
+        }
+        // Check if already in cart
+        const cartItem = cart.find(item => item.productId === productId);
+        try {
+            if (cartItem) {
+                // Update quantity if already in cart
+                await addQuantity(cartItem.id);
+            } else {
+                // Fetch the user's cart to get the cart ID
+                const cartRes = await fetchCart();
+                const cartId = cartRes.data.id;
+                await addToCart(cartId, productId, quantity);
+                toast.success("Added to cart!");
+            }
+            loadCart();
+        } catch (err) {
+            console.error("Add to cart error:", err.response?.data || err.message);
+            toast.error("Failed to add to cart.");
+        }       
+    }
+
+    // Update quantity
+    async function addQuantity(cartItemId) {
+        const item = cart.find(i => i.id === cartItemId);
+        if (item) {
+            // Find product to check stock
+            const product = products.find(p => p.id === item.productId);
+            if (!product) {
+                toast.error("Product not found.");
+                return;
+            }
+            if (item.quantity + 1 > product.stock) {
+                toast.error(`Only ${product.stock} in stock.`);
+                return;
+            }
+            try {
+                await updateCartItem(cartItemId, item.quantity + 1);
+                loadCart();
+                toast.success("Quantity updated!");
+            } catch {
+                toast.error("Failed to update quantity.");
+            }
+        }
+        
+    }
+    async function removeQuantity(cartItemId) {
+        const item = cart.find(i => i.id === cartItemId);
+        if (item && item.quantity > 1) {
+            try {
+                await updateCartItem(cartItemId, item.quantity - 1);
+                loadCart();
+                toast.success("Quantity updated!");
+            } catch {
+                toast.error("Failed to update quantity.");
+            }
+        } else if (item) {
+            await handleRemoveCartItem(cartItemId);
+        }
+    }
+
+    // Remove item
+    async function handleRemoveCartItem(cartItemId) {
+        try {
+            await removeCartItem(cartItemId);
+            loadCart();
+            toast.success("Item removed from cart!");
+        } catch {
+            toast.error("Failed to remove item.");
+        }
     }
 
     function addItem(id, name, img, category, price, quantity = 1) {
@@ -76,30 +247,10 @@ function AppContextProvider({children}) {
         }
     }
 
-    function addQuantity(id) {
-        setCart(cart =>
-            cart.map(ele =>
-                ele.id == id ? { ...ele, quantity: ele.quantity + 1 } : ele
-            )
-        );
-        toast.success("Item quantity increased!");
-    }
-
-    function removeQuantity(id) {
-        setCart(cart =>
-            cart.map(ele =>
-                ele.id == id && ele.quantity > 1
-                    ? { ...ele, quantity: ele.quantity - 1 }
-                    : ele
-            )
-        );
-        toast.success("Item quantity decreased!");
-    }
-
-    function removeCartItem(id) {
-        setCart(cart => cart.filter(ele => ele.id != id));
-        toast.success("Item removed from cart!");
-    }
+    // function removeCartItem(id) {
+    //     setCart(cart => cart.filter(ele => ele.id != id));
+    //     toast.success("Item removed from cart!");
+    // }
 
     function calculateTotal(items) {
         if (!Array.isArray(items) || items.length == 0) {
@@ -115,64 +266,37 @@ function AppContextProvider({children}) {
     }, [cart])
 
     // Place order logic
-    function placeOrder() {
-        if (!user?.address) {
-            toast.error("Please add your address in your profile before checkout.");
-            navigate("/profile");
-            return false;
+    async function placeOrder() {
+        try {
+            const res = await apiPlaceOrder();
+            toast.success("Order placed successfully!");
+            loadCart();
+            await loadOrders(); // <-- refresh orders after placing
+            return res.data;
+        } catch (err) {
+            toast.error(
+                err.response?.data?.error ||
+                "Failed to place order."
+            );
+            return null;
         }
-        if (cart.length === 0) {
-            toast.error("Your cart is empty!");
-            return false;
-        }
-        // Check for existing pending order for this user
-        const existingPending = ordersList.find(
-            order => order.userId === user.id && order.status === "Pending"
-        );
-        if (existingPending) {
-            toast("You already have a pending order. Proceed to payment.");
-            return existingPending;
-        }
-        const newOrder = {
-            id: Date.now(),
-            userId: user.id,
-            date: new Date().toISOString().split("T")[0],
-            status: "Pending",
-            total: total,
-            items: cart.length,
-            itemsDetails: cart.map(item => ({
-                productId: item.id,
-                name: item.name,
-                quantity: item.quantity
-            })),
-            address: user.address
-        };
-        setOrdersList(prev => [newOrder, ...prev]);
-        setCart([]);
-        toast.success("Order placed! Proceed to payment.");
-        return newOrder;
     }
 
     // Update order status and log transaction
-    function completeOrder(orderId, amount) {
-        setOrdersList(prev =>
-            prev.map(order =>
-                order.id === orderId ? { ...order, status: "Processing" } : order
-            )
-        );
-        setTransactionsList(prev => [
-            {
-                id: Date.now(),
-                userId: user.id,
-                date: new Date().toISOString().split("T")[0],
-                amount,
-                type: "Debit",
-                status: "Success",
-                reason: "Order Payment"
-            },
-            ...prev
-        ]);
-        toast.success("Payment successful! Order is now processing.");
+    async function completeOrder(orderId, amount, transactionId = "") {
+        try {
+            // Call backend to create Payment and update order status
+            await axiosInstance.post(`payments/${orderId}/`, {
+                payment_method: "Paystack",
+                transaction_id: transactionId,
+            });
+            toast.success("Payment successful! Order is now processing.");
+            // Optionally, refresh orders and transactions
+            await loadOrders();
+            await loadTransactions();
+        } catch (err) {
+            toast.error("Failed to log payment in backend.");
+        }
     }
 
     function logFailedTransaction(orderId, amount) {
@@ -192,18 +316,65 @@ function AppContextProvider({children}) {
     }
 
     function deleteTransaction(id) {
-        setTransactionsList(prev => prev.filter(tx => tx.id !== id));
+        setTransactionsList(prev => prev.filter (tx => tx.id !== id));
         toast.success("Transaction deleted.");
     }
 
-    function deleteOrder(id) {
-        setOrdersList(prev => prev.filter(order => order.id !== id));
-        toast.success("Order deleted.");
+    async function deleteOrder(id) {
+        try {
+            await apiDeleteOrder(id);
+            setUserOrders(prev => prev.filter(order => order.id !== id));
+            toast.success("Order deleted.");
+        } catch {
+            toast.error("Failed to delete order.");
+        }
     }
 
-    // Filter orders and transactions for current user
-    const userOrders = ordersList.filter(order => order.userId === user?.id);
-    const userTransactions = transactionsList.filter(tx => tx.userId === user?.id);
+async function loadTransactions() {
+  if (user) {
+    try {
+      const res = await fetchPayments();
+      // Filter and map payments for the current user
+      setUserTransactions(
+        res.data
+          .filter(tx => tx.user === user.id || tx.user?.id === user.id)
+          .map(tx => ({
+            id: tx.id,
+            date: tx.created_at || tx.date,
+            amount: Number(tx.amount),
+            status: tx.status || (tx.paid ? "Success" : "Pending"),
+            type: tx.payment_method || tx.type || "Paystack",
+            reason: tx.reason || "",
+          }))
+      );
+    } catch {
+      setUserTransactions([]);
+    }
+  } else {
+    setUserTransactions([]);
+  }
+}
+
+// Fetch transactions when user logs in
+useEffect(() => {
+  loadTransactions();
+}, [user]);
+
+    async function logout() {
+        const refresh = localStorage.getItem("refresh");
+        try {
+            if (refresh) {
+                await apiLogout(refresh);
+            }
+        } catch (e) {
+            // Optionally handle error
+        }
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
+        setUser(null);
+        navigate("/login");
+        toast.success("Logged out successfully!");
+    }
 
     const value = {
         cart,
@@ -212,11 +383,12 @@ function AppContextProvider({children}) {
         setUser,
         addQuantity,
         removeQuantity,
-        removeCartItem,
+        handleRemoveCartItem,
         total,
         navigate,
-        addItem,
+        handleAddItem,
         products,
+        productsLoading,
         ordersList,
         transactionsList,
         editUserDetails,
@@ -228,7 +400,13 @@ function AppContextProvider({children}) {
         searchTerm,
         setSearchTerm,
         deleteTransaction,
-        deleteOrder
+        deleteOrder,
+        logout,
+        userLoading,
+        cartLoading,
+        loadCart,
+        loadOrders,
+        loadTransactions, // <-- expose loadTransactions
     };
     return (
         <AppContext.Provider value={value}>

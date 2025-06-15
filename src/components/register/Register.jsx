@@ -1,26 +1,53 @@
-import { useState } from "react"
+import { useState, useContext } from "react"
+import { useAppContext } from "../../contexts/AppContext"
 import { Input } from "../login/Login"
 import { NavLink } from "react-router-dom"
 import { Logo } from "../navbar/Navbar"
 import Authenticate from "../../assets/images/sign-in-or-sign-up-animation-ANLtTakGP7.png"
 import GoogleIcon from "../../assets/images/Rectangle.png"
+import { register } from "../../api/auth"
+import { mapUser } from "../../utils/mapUser"
+import toast from "react-hot-toast"
 
 function Register() {
-    const [firtName, setFirstName] = useState("")
+    const { setUser, navigate } = useAppContext();
+    const [firstName, setFirstName] = useState("")
     const [lastName, setLastName] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
-    function handleRegister() {
+    async function handleRegister() {
         setLoading(true)
         setError("")
-        if (!firtName || !lastName || !email || !password) {
+        if (!firstName || !lastName || !email || !password) {
             setError("Please fill in all fields")
             setLoading(false)
             return
         }
-        // Add registration logic here
+        try {
+            const res = await register({
+                firstName,
+                lastName,
+                email,
+                password,
+            })
+            localStorage.setItem("access", res.data.access)
+            localStorage.setItem("refresh", res.data.refresh)
+            setUser(mapUser(res.data.user));
+            navigate("/profile");
+            toast.success("Registration successful!");
+        } catch (err) {
+            setError(
+                err.response?.data?.email?.[0] ||
+                err.response?.data?.password?.[0] ||
+                err?.message ||
+                "Registration failed"
+            )
+            console.log(err);
+            
+        }
+        setLoading(false)
     }
   return (
     <div className="mt-36 lg:mx-52 mx-20 flex lg:gap-10 items-center justify-center">
@@ -40,7 +67,7 @@ function Register() {
         )}
         <div className="flex flex-col justify-center items-center mt-14">
             <div className="flex lg:gap-5 flex-col lg:flex-row">
-            <Input type="text" label="First Name" width="lg:w-[265px]" value={firtName} onChange={(event) => setFirstName(event.target.value)} />
+            <Input type="text" label="First Name" width="lg:w-[265px]" value={firstName} onChange={(event) => setFirstName(event.target.value)} />
             <Input type="text" label="Last Name" width="lg:w-[265px]" value={lastName} onChange={(event) => setLastName(event.target.value)} />
             </div>
             <Input type="email" label="Email" width="lg:w-[550px]" value={email} onChange={(event) => setEmail(event.target.value)} />

@@ -3,7 +3,7 @@ import { useAppContext } from "../../contexts/AppContext";
 
 function ProductDetails() {
   const { id } = useParams();
-  const { products, addItem, navigate } = useAppContext();
+  const { products, handleAddItem, navigate } = useAppContext();
 
   const product = products.find((p) => String(p.id) === String(id));
 
@@ -16,7 +16,9 @@ function ProductDetails() {
   }
 
   const handleAddToCart = () => {
-    addItem(product.id, product.name, product.img, product.category, product.price, 1);
+    handleAddItem(
+      product.id
+    );
   };
 
   const handleBuyNow = () => {
@@ -26,11 +28,11 @@ function ProductDetails() {
 
   return (
     <div className="w-full max-w-3xl mx-auto px-4 mt-36 flex flex-col lg:flex-row gap-10 items-center">
-      <img src={product.img} alt={product.name} className="w-full max-w-sm rounded-lg shadow" />
+      <img src={product.image} alt={product.name} className="w-full max-w-sm rounded-lg shadow" />
       <div className="flex-1 flex flex-col gap-4">
         <h1 className="text-3xl font-bold">{product.name}</h1>
-        <p className="text-lg text-gray-600">{product.category}</p>
-        <p className="text-2xl font-bold text-dark-blue">₦{product.price.toLocaleString()}</p>
+        <p className="text-lg text-gray-600">{product.category?.name}</p>
+        <p className="text-2xl font-bold text-dark-blue">₦{Number(product.price).toLocaleString()}</p>
         {/* Product Description */}
         <div className="mt-2">
           <h2 className="font-semibold mb-1">Description</h2>

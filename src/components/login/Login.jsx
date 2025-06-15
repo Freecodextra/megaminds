@@ -3,14 +3,19 @@ import { NavLink } from "react-router-dom";
 import { Logo } from "../navbar/Navbar";
 import Authenticate from "../../assets/images/sign-in-or-sign-up-animation-ANLtTakGP7.png";
 import GoogleIcon from "../../assets/images/Rectangle.png";
+import { useAppContext } from "../../contexts/AppContext";
+import { login, setAuthToken, getUserProfile } from "../../api/auth";
+import { mapUser } from "../../utils/mapUser";
+import toast from "react-hot-toast";
 
 function Login() {
+  const { setUser, navigate } = useAppContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function handleLogin() {
+  async function handleLogin() {
     setLoading(true);
     setError("");
     if (!email || !password) {
@@ -18,6 +23,23 @@ function Login() {
       setLoading(false);
       return;
     }
+    try {
+      const res = await login({ email, password });
+      localStorage.setItem("access", res.data.access);
+      localStorage.setItem("refresh", res.data.refresh);
+      setAuthToken(res.data.access);
+      // Fetch user profile after login
+      const userRes = await getUserProfile();
+      setUser(mapUser(userRes.data));
+      navigate("/profile");
+      toast.success("Login successful!");
+    } catch (err) {
+      setError(
+        err.response?.data?.detail ||
+          "Login failed"
+      );
+    }
+    setLoading(false);
   }
   return (
     <div className="mt-36 lg:mx-52 mx-20 flex lg:gap-10 items-center justify-center">

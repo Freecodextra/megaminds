@@ -5,9 +5,11 @@ import close from "../../assets/images/Close search bar button.png";
 import { NavLink } from "react-router-dom";
 import { useState, useRef } from "react";
 import { useAppContext } from "../../contexts/AppContext";
+import { FiLogOut, FiLogIn } from "react-icons/fi"; // Logout icon
 
 function Navbar() {
-  const { navigate, cart, searchTerm, setSearchTerm } = useAppContext();
+  const { navigate, cart, searchTerm, setSearchTerm, user, logout } =
+    useAppContext();
   const [isOpen, setIsOpen] = useState(true);
   const [searchOpen, setSearchOpen] = useState(true);
   const navbar = useRef(0);
@@ -121,6 +123,21 @@ function Navbar() {
           >
             <NavLink to="/profile">My Profile</NavLink>
           </li>
+          {user ? (
+        <li
+            className="hover:text-dark-blue hover:underline my-4"
+            onClick={()=> {logout(); toggleMenu()}}
+          >
+            Logout
+          </li>
+      ) : (
+        <li
+          className="hover:text-dark-blue hover:underline my-4"
+          onClick={()=> {navigate("/login"); toggleMenu()}}
+        >
+          Login
+        </li>
+      )}
         </ul>
       </div>
       <div className="links lg:flex items-center hidden">
@@ -283,13 +300,32 @@ function Navbar() {
           </defs>
         </svg>
         <div
-          className="cart-value w-5 h-5 absolute top-4 -right-2 bg-[#ff0000] rounded-full flex items-center justify-center cursor-pointer"
+          className="cart-value w-5 h-5 absolute top-4 right-12 bg-[#ff0000] rounded-full flex items-center justify-center cursor-pointer"
           onClick={() => navigate("/cart")}
         >
           <span className="text-center text-white font-bold text-[13px]">
             {cart.length}
           </span>
         </div>
+      {user ? (
+        <button
+        onClick={logout}
+        title="Logout"
+        className="ml-4 p-2 rounded hover:bg-gray-200 transition lg:block hidden"
+        style={{ background: "none", border: "none", cursor: "pointer" }}
+        >
+          <FiLogOut size={22} />
+        </button>
+      ) : (
+        <button
+          onClick={() => navigate("/login")}
+          title="Login"
+          className="ml-4 p-2 rounded hover:bg-gray-200 transition lg:block hidden"
+          style={{ background: "none", border: "none", cursor: "pointer" }}
+        >
+          <FiLogIn size={22} />
+        </button>
+      )}
       </div>
     </div>
   );
