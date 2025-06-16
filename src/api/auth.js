@@ -1,7 +1,7 @@
 import axios from "axios";
 import axiosInstance from "./axiosInstance";
 
-const API_URL = "http://localhost:8000/api/";
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 export async function register({ firstName, lastName, email, password }) {
   return axios.post(`${API_URL}register/`, {
