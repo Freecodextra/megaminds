@@ -36,10 +36,16 @@ function Questionaire() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-            <div className={`flex justify-between items-center ${open ? "pt-9" : "pt-4"}`}>
-                <h1 className="txt font-bold lg:text-3xl text-xl text-center text-[#323a46]">Accordion - FAQs</h1>
-                <button className="w-[54px] h-[54px] rounded-full bg-dark-blue grid place-items-center" onClick={openFaQ}>
-                    <img src={downBtn} alt="image" />
+            <div className={`flex items-center justify-between gap-4 ${open ? "pt-9" : "pt-4 pb-4"}`}>
+                <h1 className="txt font-bold lg:text-3xl text-xl flex-1 text-[#323a46]">
+                    Accordion - FAQs
+                </h1>
+                <button
+                  className="w-[54px] h-[54px] rounded-full bg-dark-blue grid place-items-center flex-shrink-0"
+                  onClick={openFaQ}
+                  aria-label="Toggle FAQ"
+                >
+                    <img src={downBtn} alt="toggle" />
                 </button>
             </div>
             <AnimatePresence>

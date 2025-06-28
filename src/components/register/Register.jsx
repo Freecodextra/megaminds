@@ -12,6 +12,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from "jwt-decode";
 import { getUserProfile } from "../../api/auth"; // add this import
 import { motion } from "framer-motion";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 function Register() {
     const { setUser, navigate } = useAppContext();
@@ -21,6 +22,7 @@ function Register() {
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
+    const [googleLoading, setGoogleLoading] = useState(false);
     async function handleRegister() {
         setLoading(true)
         setError("")
@@ -55,6 +57,8 @@ function Register() {
     }
 
     async function handleGoogleSuccess(credentialResponse) {
+        setGoogleLoading(true);
+        setError("");
         try {
             const decoded = jwtDecode(credentialResponse.credential);
             const userData = {
@@ -98,6 +102,8 @@ function Register() {
             }
         } catch (e) {
             setError("Google authentication failed.");
+        } finally {
+            setGoogleLoading(false);
         }
     }
 
@@ -139,7 +145,7 @@ function Register() {
             onClick={handleRegister}
             disabled={loading}
           >
-            {loading ? "Creating..." : "Create Account"}
+            {loading ? <LoadingSpinner /> : "Create Account"}
           </button>
           <p className="lg:w-[550px] w-full mt-4 text-[#575757]">Already have an account? <NavLink to="/login" className="text-dark-blue font-bold">Login</NavLink></p>
         </div>
@@ -156,6 +162,11 @@ function Register() {
   logo_alignment="left"
 />
         </div>
+        {googleLoading && (
+  <div className="fixed inset-0 z-50 bg-black bg-opacity-30 flex items-center justify-center">
+    <LoadingSpinner />
+  </div>
+)}
         </motion.div>
     </motion.div>
   )

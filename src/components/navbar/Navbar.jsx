@@ -12,21 +12,13 @@ import { motion, AnimatePresence } from "framer-motion";
 function Navbar() {
   const { navigate, cart, searchTerm, setSearchTerm, user, logout } =
     useAppContext();
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false); // default to false (closed)
   const [searchOpen, setSearchOpen] = useState(true);
   const navbar = useRef(0);
   const searchbar = useRef(0);
   const toggleMenu = () => {
-    if (isOpen) {
-      navbar.current.classList.add("left-0");
-      navbar.current.classList.remove("-left-full");
-      document.body.style.overflow = "hidden";
-    } else {
-      navbar.current.classList.remove("left-0");
-      navbar.current.classList.add("-left-full");
-      document.body.style.overflow = "auto";
-    }
-    setIsOpen(!isOpen);
+    setIsOpen((prev) => !prev);
+    document.body.style.overflow = !isOpen ? "hidden" : "auto";
   };
 
   const openSearch = () => {
@@ -71,10 +63,10 @@ function Navbar() {
       </div>
       {/* Mobile NavBar */}
       <AnimatePresence>
-        {!isOpen && (
+        {isOpen && (
           <motion.div
             id="mobile-navbar"
-            className="lg:hidden absolute top-24 -left-full bg-white w-full px-8 h-screen transition-all duration-200"
+            className="lg:hidden absolute top-24 left-0 bg-white w-full px-8 h-screen transition-all duration-200"
             ref={navbar}
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
@@ -114,7 +106,7 @@ function Navbar() {
                     className="hover:text-dark-blue hover:underline my-4"
                     onClick={toggleMenu}
                   >
-                    <NavLink to="/women">Women</NavLink>
+                    <NavLink to="/shoes">Shoes</NavLink>
                   </li>
                 </ul>
               </li>

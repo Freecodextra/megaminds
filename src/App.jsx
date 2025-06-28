@@ -27,7 +27,7 @@ function App() {
           <Route path="/accessories" element={<Products category="accessories" />} />
           <Route path="/men" element={<Products category="men" />} />
           <Route path="/women" element={<Products category="women" />} />
-          {/* <Route path="/shoes" element={<Products category="shoes" />} /> */}
+          <Route path="/shoes" element={<Products category="shoes" />} />
           <Route path="/cart" element={
             <ProtectedRoute>
               <Cart />

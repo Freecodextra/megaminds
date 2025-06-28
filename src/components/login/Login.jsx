@@ -11,6 +11,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { motion } from "framer-motion";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 function Login() {
   const { setUser, navigate } = useAppContext();
@@ -18,6 +19,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   async function handleLogin() {
     setLoading(true);
@@ -47,6 +49,8 @@ function Login() {
   }
 
   async function handleGoogleSuccess(credentialResponse) {
+    setGoogleLoading(true);
+    setError("");
     try {
       const decoded = jwtDecode(credentialResponse.credential);
       const userData = {
@@ -83,6 +87,8 @@ function Login() {
       }
     } catch (e) {
       setError("Google authentication failed.");
+    } finally {
+      setGoogleLoading(false);
     }
   }
 
@@ -132,7 +138,7 @@ function Login() {
             onClick={handleLogin}
             disabled={loading}
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? <LoadingSpinner /> : "Login"}
           </button>
           <p className="lg:w-[550px] w-[293px] mt-4 text-[#575757]">
             Dont have an account?{" "}
@@ -156,6 +162,11 @@ function Login() {
             logo_alignment="left"
           />
         </div>
+        {googleLoading && (
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-30 flex items-center justify-center">
+            <LoadingSpinner />
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );
