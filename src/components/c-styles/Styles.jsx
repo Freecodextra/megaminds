@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import title1 from "../../assets/images/title1.png"
 import title2 from "../../assets/images/title2.png"
 import { OrderNow } from "../navbar/Navbar"
@@ -18,14 +19,28 @@ function Styles() {
         },
     ]
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 lg:mt-24 mt-20">
+    <motion.div
+      className="w-full max-w-6xl mx-auto px-4 lg:mt-24 mt-20"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8, delay: 0.2 }}
+    >
       <h1 className="lg:text-4xl text-2xl font-bold text-center">Check out our latest styles</h1>
       {
         latestStyles.map((style,index)=>{
-          return <LatestStyles key={index} {...style} />
+          return (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: style.isReverse ? 60 : -60 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 + index * 0.2 }}
+            >
+              <LatestStyles {...style} />
+            </motion.div>
+          )
         })
       }
-    </div>
+    </motion.div>
   )
 }
 

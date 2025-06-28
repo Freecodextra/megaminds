@@ -7,6 +7,10 @@ import { useAppContext } from "../../contexts/AppContext";
 import { login, setAuthToken, getUserProfile } from "../../api/auth";
 import { mapUser } from "../../utils/mapUser";
 import toast from "react-hot-toast";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
+import { motion } from "framer-motion";
 
 function Login() {
   const { setUser, navigate } = useAppContext();
@@ -31,7 +35,7 @@ function Login() {
       // Fetch user profile after login
       const userRes = await getUserProfile();
       setUser(mapUser(userRes.data));
-      navigate("/profile");
+      navigate("/");
       toast.success("Login successful!");
     } catch (err) {
       setError(
@@ -41,13 +45,64 @@ function Login() {
     }
     setLoading(false);
   }
+
+  async function handleGoogleSuccess(credentialResponse) {
+    try {
+      const decoded = jwtDecode(credentialResponse.credential);
+      const userData = {
+        firstName: decoded.given_name || "",
+        lastName: decoded.family_name || "",
+        email: decoded.email,
+        username: decoded.email, // Use email as username
+        password: decoded.sub,   // Use Google sub as password fallback
+      };
+      // Try login
+      try {
+        const { login } = await import("../../api/auth");
+        const res = await login({ email: userData.email, password: userData.password });
+        localStorage.setItem("access", res.data.access);
+        localStorage.setItem("refresh", res.data.refresh);
+        // Fetch user profile after login
+        const profileRes = await getUserProfile();
+        setUser(mapUser(profileRes.data));
+        navigate("/");
+        toast.success("Login successful!");
+      } catch (err) {
+        // If login fails, try to register
+        try {
+          const { register } = await import("../../api/auth");
+          const regRes = await register(userData);
+          localStorage.setItem("access", regRes.data.access);
+          localStorage.setItem("refresh", regRes.data.refresh);
+          setUser(mapUser(regRes.data.user));
+          navigate("/");
+          toast.success("Registration successful!");
+        } catch (regErr) {
+          setError("Google login failed.");
+        }
+      }
+    } catch (e) {
+      setError("Google authentication failed.");
+    }
+  }
+
   return (
-    <div className="mt-36 lg:mx-52 mx-20 flex lg:gap-10 items-center justify-center">
+    <motion.div
+      className="mt-36 lg:mx-52 mx-20 flex lg:gap-10 items-center justify-center"
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7 }}
+    >
       <div className="left flex max-md:hidden flex-col items-center justify-center">
         <Logo />
         <img src={Authenticate} alt="" />
       </div>
-      <div className="right">
+      <motion.div
+        className="right"
+        initial={{ opacity: 0, x: 40 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.7, delay: 0.2 }}
+      >
         <div className="head flex flex-col justify-center gap-10">
           <h1 className="text-4xl font-bold">Login</h1>
         </div>
@@ -57,24 +112,27 @@ function Login() {
             <span className="block sm:inline">{error}</span>
           </div>
         )}
-        <div className="flex flex-col justify-center items-center mt-14">
+        <div className="flex flex-col justify-center items-center mt-14 w-full">
           <Input
             type="email"
             label="Email"
-            width="lg:w-[550px]"
+            width="lg:w-[550px] w-full"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
           <Input
             type="password"
             label="Password"
-            width="lg:w-[550px]"
+            width="lg:w-[550px] w-full"
             onChange={(event) => setPassword(event.target.value)}
             value={password}
           />
-          <button className="lg:px-[240px] px-28 lg:py-4 py-3 rounded-[8px] font-bold bg-dark-blue hover:bg-[#000074] text-white text-2xl" onClick={handleLogin} disabled={loading}>
-           Login
-            {loading ? <span className="animate-pulse">...</span> : null}
+          <button
+            className="btn-primary lg:w-[550px] w-full mt-4"
+            onClick={handleLogin}
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Login"}
           </button>
           <p className="lg:w-[550px] w-[293px] mt-4 text-[#575757]">
             Dont have an account?{" "}
@@ -90,38 +148,41 @@ function Login() {
           </span>
         </div>
         <div className="flex items-center justify-center mt-6 w-full">
-          <button className="lg:px-[162px] px-8 lg:py-2 rounded-[8px] font-bold border border-black text-[#575757] flex items-center justify-center">
-            <img src={GoogleIcon} alt="" />
-            Sign In with Google
-          </button>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError("Google Sign-In failed")}
+            shape="pill"
+            text="signup_with" // or "signin_with" for login
+            logo_alignment="left"
+          />
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
-export function Input({
-  htmlFor,
-  type,
-  placeholder,
-  value,
-  label,
-  onChange,
-  width,
-}) {
+export function Input({ type, label, width, value, onChange }) {
+  const [show, setShow] = useState(false);
+  const isPassword = type === "password";
   return (
-    <div className="relative lg:mb-6 mb-3">
-      <label htmlFor={htmlFor} className="absolute top-1 left-5 bg-white p-2">
-        {label}
-      </label>
-      <br />
+    <div className={`mb-4 relative ${width}`}>
+      <label className="block mb-1 font-semibold">{label}</label>
       <input
-        type={type}
-        placeholder={placeholder}
+        type={isPassword && show ? "text" : type}
         value={value}
         onChange={onChange}
-        className={`border border-black/50 ${width} w-[293px] h-14 rounded-lg px-4 focus:outline-dark-blue focus:outline focus:border-dark-blue`}
+        className="w-full border rounded px-3 py-2"
       />
+      {isPassword && (
+        <span
+          className="absolute right-3 top-9 cursor-pointer text-gray-500"
+          onClick={() => setShow((prev) => !prev)}
+          tabIndex={0}
+          aria-label={show ? "Hide password" : "Show password"}
+        >
+          {show ? <FaEyeSlash /> : <FaEye />}
+        </span>
+      )}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useAppContext } from "../../contexts/AppContext";
 import { Link } from "react-router-dom";
 
@@ -16,12 +17,23 @@ function Cart() {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 mt-36">
+    <motion.div
+      className="w-full max-w-4xl mx-auto px-4 mt-36"
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7 }}
+    >
       <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
       <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
         <div className="flex flex-col gap-6">
-          {cart.map(item => (
-            <div key={item.id} className="flex flex-col sm:flex-row items-center gap-6 border-b pb-6 last:border-b-0">
+          {cart.map((item, idx) => (
+            <motion.div
+              key={item.id}
+              className="flex flex-col sm:flex-row items-center gap-6 border-b pb-6 last:border-b-0"
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
+            >
               <img src={item.img} alt={item.name} className="w-28 h-28 object-cover rounded-lg shadow" />
               <div className="flex-1 w-full">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -47,7 +59,7 @@ function Cart() {
                   >Remove</button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -64,7 +76,7 @@ function Cart() {
           Proceed to Checkout
         </Link>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

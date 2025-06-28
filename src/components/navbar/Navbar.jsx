@@ -6,6 +6,8 @@ import { NavLink } from "react-router-dom";
 import { useState, useRef } from "react";
 import { useAppContext } from "../../contexts/AppContext";
 import { FiLogOut, FiLogIn } from "react-icons/fi"; // Logout icon
+import ProfileIcon from "../ProfileIcon"; // Import the new ProfileIcon component
+import { motion, AnimatePresence } from "framer-motion";
 
 function Navbar() {
   const { navigate, cart, searchTerm, setSearchTerm, user, logout } =
@@ -44,7 +46,12 @@ function Navbar() {
   };
 
   return (
-    <div className="flex item-center justify-between lg:justify-center gap-x-[140px] w-full py-4 lg:py-5 px-5 lg:px-36 text-xl fixed top-0 bg-white z-50 shadow-md">
+    <motion.div
+      className="flex item-center justify-between lg:justify-center gap-x-[140px] w-full py-4 lg:py-5 px-5 lg:px-36 text-xl fixed top-0 bg-white z-50 shadow-md"
+      initial={{ y: -60, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
       <Logo />
       <div
         className="hamburger lg:hidden flex items-center justify-end pointer"
@@ -63,83 +70,97 @@ function Navbar() {
         </svg>
       </div>
       {/* Mobile NavBar */}
-      <div
-        id="mobile-navbar"
-        className="lg:hidden absolute top-24 -left-full bg-white w-full px-8 h-screen transition-all duration-200"
-        ref={navbar}
-      >
-        <ul>
-          <li
-            className="hover:text-dark-blue hover:underline my-3"
-            onClick={toggleMenu}
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.div
+            id="mobile-navbar"
+            className="lg:hidden absolute top-24 -left-full bg-white w-full px-8 h-screen transition-all duration-200"
+            ref={navbar}
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ duration: 0.4 }}
           >
-            <NavLink to="/">Home</NavLink>
-          </li>
-          <li className="group my-4">
-            <div className="flex gap-2 items-center">
-              <span>Clothing</span>
-              <img
-                src={downArrow}
-                alt="down-arrow"
-                className="w-[10px] h-[9px]"
-              />
-            </div>
-            <ul className="hidden group-hover:block mx-4">
+            <ul>
               <li
-                className="hover:text-dark-blue hover:underline my-4"
+                className="hover:text-dark-blue hover:underline my-3"
                 onClick={toggleMenu}
               >
-                <NavLink to="/men">Men</NavLink>
+                <NavLink to="/">Home</NavLink>
+              </li>
+              <li className="group my-4">
+                <div className="flex gap-2 items-center">
+                  <span>Clothing</span>
+                  <img
+                    src={downArrow}
+                    alt="down-arrow"
+                    className="w-[10px] h-[9px]"
+                  />
+                </div>
+                <ul className="hidden group-hover:block mx-4">
+                  <li
+                    className="hover:text-dark-blue hover:underline my-4"
+                    onClick={toggleMenu}
+                  >
+                    <NavLink to="/men">Men</NavLink>
+                  </li>
+                  <li
+                    className="hover:text-dark-blue hover:underline my-4"
+                    onClick={toggleMenu}
+                  >
+                    <NavLink to="/women">Women</NavLink>
+                  </li>
+                  <li
+                    className="hover:text-dark-blue hover:underline my-4"
+                    onClick={toggleMenu}
+                  >
+                    <NavLink to="/women">Women</NavLink>
+                  </li>
+                </ul>
               </li>
               <li
                 className="hover:text-dark-blue hover:underline my-4"
                 onClick={toggleMenu}
               >
-                <NavLink to="/women">Women</NavLink>
+                <NavLink to="/accessories">Accessories</NavLink>
               </li>
+              <li
+                className="hover:text-dark-blue hover:underline my-4"
+                onClick={toggleMenu}
+              >
+                <NavLink to="/about">About Us</NavLink>
+              </li>
+              <li
+                className="hover:text-dark-blue hover:underline my-4"
+                onClick={toggleMenu}
+              >
+                <NavLink to="/cart">My Cart</NavLink>
+              </li>
+              <li
+                className="hover:text-dark-blue hover:underline my-4"
+                onClick={toggleMenu}
+              >
+                <NavLink to="/profile">My Profile</NavLink>
+              </li>
+              {user ? (
+                <li
+                  className="hover:text-dark-blue hover:underline my-4"
+                  onClick={() => { logout(); toggleMenu() }}
+                >
+                  Logout
+                </li>
+              ) : (
+                <li
+                  className="hover:text-dark-blue hover:underline my-4"
+                  onClick={() => { navigate("/login"); toggleMenu() }}
+                >
+                  Login
+                </li>
+              )}
             </ul>
-          </li>
-          <li
-            className="hover:text-dark-blue hover:underline my-4"
-            onClick={toggleMenu}
-          >
-            <NavLink to="/shoes">Shoes</NavLink>
-          </li>
-          <li
-            className="hover:text-dark-blue hover:underline my-4"
-            onClick={toggleMenu}
-          >
-            <NavLink to="/about">About Us</NavLink>
-          </li>
-          <li
-            className="hover:text-dark-blue hover:underline my-4"
-            onClick={toggleMenu}
-          >
-            <NavLink to="/cart">My Cart</NavLink>
-          </li>
-          <li
-            className="hover:text-dark-blue hover:underline my-4"
-            onClick={toggleMenu}
-          >
-            <NavLink to="/profile">My Profile</NavLink>
-          </li>
-          {user ? (
-        <li
-            className="hover:text-dark-blue hover:underline my-4"
-            onClick={()=> {logout(); toggleMenu()}}
-          >
-            Logout
-          </li>
-      ) : (
-        <li
-          className="hover:text-dark-blue hover:underline my-4"
-          onClick={()=> {navigate("/login"); toggleMenu()}}
-        >
-          Login
-        </li>
-      )}
-        </ul>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="links lg:flex items-center hidden">
         <ul className="flex list-none space-x-10 text-xl items-center">
           <li className="hover:text-dark-blue hover:underline">
@@ -179,7 +200,7 @@ function Navbar() {
             </div>
           </li>
           <li className="hover:text-dark-blue hover:underline">
-            <NavLink to="/shoes">Shoes</NavLink>
+            <NavLink to="/accessories">Accessories</NavLink>
           </li>
           <li className="hover:text-dark-blue hover:underline">
             <NavLink to="/about">About Us</NavLink>
@@ -235,32 +256,7 @@ function Navbar() {
           </defs>
         </svg>
         {/* Profile */}
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="group cursor-pointer"
-          onClick={() => navigate("/profile")}
-        >
-          <g clipPath="url(#clip0_259_2307)">
-            <path
-              d="M21 24.0005H19V18.9575C18.9992 18.1735 18.6874 17.4218 18.133 16.8675C17.5787 16.3131 16.827 16.0013 16.043 16.0005H7.957C7.173 16.0013 6.42134 16.3131 5.86696 16.8675C5.31259 17.4218 5.00079 18.1735 5 18.9575V24.0005H3V18.9575C3.00159 17.6433 3.52435 16.3834 4.45363 15.4541C5.3829 14.5248 6.64281 14.0021 7.957 14.0005H16.043C17.3572 14.0021 18.6171 14.5248 19.5464 15.4541C20.4756 16.3834 20.9984 17.6433 21 18.9575V24.0005Z"
-              fill="black"
-            />
-            <path
-              d="M12 11.9999C10.8133 11.9999 9.65328 11.648 8.66658 10.9887C7.67989 10.3294 6.91085 9.39234 6.45673 8.29598C6.0026 7.19963 5.88378 5.99323 6.11529 4.82934C6.3468 3.66545 6.91825 2.59635 7.75736 1.75724C8.59648 0.918125 9.66558 0.34668 10.8295 0.115169C11.9933 -0.116342 13.1997 0.00247765 14.2961 0.456603C15.3925 0.910729 16.3295 1.67976 16.9888 2.66646C17.6481 3.65315 18 4.81319 18 5.99988C17.9984 7.59069 17.3658 9.11589 16.2409 10.2408C15.116 11.3656 13.5908 11.9983 12 11.9999ZM12 1.99988C11.2089 1.99988 10.4355 2.23448 9.77772 2.674C9.11993 3.11353 8.60724 3.73824 8.30448 4.46915C8.00173 5.20005 7.92252 6.00432 8.07686 6.78024C8.2312 7.55617 8.61217 8.2689 9.17158 8.82831C9.73099 9.38772 10.4437 9.76868 11.2196 9.92302C11.9956 10.0774 12.7998 9.99815 13.5307 9.6954C14.2616 9.39265 14.8864 8.87996 15.3259 8.22216C15.7654 7.56436 16 6.79101 16 5.99988C16 4.93901 15.5786 3.9216 14.8284 3.17145C14.0783 2.42131 13.0609 1.99988 12 1.99988Z"
-              fill="black"
-              className="group-hover:fill-dark-blue"
-            />
-          </g>
-          <defs>
-            <clipPath id="clip0_259_2307">
-              <rect width="24" height="24" fill="white" />
-            </clipPath>
-          </defs>
-        </svg>
+        <ProfileIcon />
         {/* Cart */}
         <svg
           width="24"
@@ -307,27 +303,27 @@ function Navbar() {
             {cart.length}
           </span>
         </div>
-      {user ? (
-        <button
-        onClick={logout}
-        title="Logout"
-        className="ml-4 p-2 rounded hover:bg-gray-200 transition lg:block hidden"
-        style={{ background: "none", border: "none", cursor: "pointer" }}
-        >
-          <FiLogOut size={22} />
-        </button>
-      ) : (
-        <button
-          onClick={() => navigate("/login")}
-          title="Login"
-          className="ml-4 p-2 rounded hover:bg-gray-200 transition lg:block hidden"
-          style={{ background: "none", border: "none", cursor: "pointer" }}
-        >
-          <FiLogIn size={22} />
-        </button>
-      )}
+        {user ? (
+          <button
+            onClick={logout}
+            title="Logout"
+            className="ml-4 p-2 rounded hover:bg-gray-200 transition lg:block hidden"
+            style={{ background: "none", border: "none", cursor: "pointer" }}
+          >
+            <FiLogOut size={22} />
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate("/login")}
+            title="Login"
+            className="ml-4 p-2 rounded hover:bg-gray-200 transition lg:block hidden"
+            style={{ background: "none", border: "none", cursor: "pointer" }}
+          >
+            <FiLogIn size={22} />
+          </button>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 

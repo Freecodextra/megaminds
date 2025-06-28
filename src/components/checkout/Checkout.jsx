@@ -5,6 +5,7 @@ import axiosInstance from "../../api/axiosInstance";
 import LoadingSpinner from "../common/LoadingSpinner";
 import { PaystackButton } from "react-paystack";
 import toast from "react-hot-toast";
+import { motion } from "framer-motion";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -97,7 +98,7 @@ function Checkout() {
     publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
     onSuccess: (ref) => {
       completeOrder(order.id, order.total_price, ref.reference);
-      navigate("/profile");
+      navigate("/profile?tab=orders"); 
     },
     onClose: () => {
       logFailedTransaction(order.id, order.total_price);
@@ -105,8 +106,47 @@ function Checkout() {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 mt-36">
+    <motion.div
+      className="w-full max-w-2xl mx-auto px-4 mt-36"
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7 }}
+    >
       <h1 className="text-3xl font-bold mb-8 text-center">Order Summary</h1>
+      
+      {/* Stacked product images */}
+      <motion.div
+        className="flex items-center justify-center mb-6"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.7, delay: 0.2 }}
+      >
+        <div className="flex -space-x-4">
+          {order.items?.slice(0, 5).map((item, idx) => (
+            <motion.img
+              key={item.id}
+              src={item.product.image}
+              alt={item.product.name}
+              className={`w-12 h-12 object-cover rounded-full border-2 border-white shadow ${idx !== 0 ? '-ml-4' : ''}`}
+              style={{ zIndex: order.items.length - idx }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 + idx * 0.1 }}
+            />
+          ))}
+          {order.items?.length > 5 && (
+            <motion.div
+              className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-200 border-2 border-white -ml-4 text-gray-700 font-bold shadow"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+            >
+              +{order.items.length - 5}
+            </motion.div>
+          )}
+        </div>
+      </motion.div>
+      
       <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
         <div className="mb-4">
           <div className="font-semibold mb-2">Order ID:</div>
@@ -139,7 +179,7 @@ function Checkout() {
       >
         Pay Now
       </PaystackButton>
-    </div>
+    </motion.div>
   );
 }
 

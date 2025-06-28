@@ -1,0 +1,27 @@
+/* ProfileIcon.css */
+.profile-icon-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  background: #1976d2;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px;
+  position: absolute;
+  left: 50%;
+  top: 110%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  transition: opacity 0.2s;
+  z-index: 10;
+  font-size: 0.75em;
+}
+
+.profile-icon-wrapper:hover .profile-tooltip {
+  visibility: visible;
+  opacity: 1;
+}

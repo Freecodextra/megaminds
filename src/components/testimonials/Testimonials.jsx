@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import test1 from "../../assets/images/test1.png";
 import test2 from "../../assets/images/test2.png";
 import test3 from "../../assets/images/test3.png";
@@ -34,18 +35,32 @@ function Testimonials() {
     },
   ];
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 flex items-center justify-center">
+    <motion.div
+      className="w-full max-w-6xl mx-auto px-4 flex items-center justify-center"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8, delay: 0.2 }}
+    >
       <div className="lg:mt-24 mt-20 w-full">
         <h1 className="lg:text-4xl text-3xl font-bold text-center">
           Hear from our customers
         </h1>
         <div className="lg:mt-10 mt-8 flex pt-20 overflow-x-scroll lg:gap-6 gap-3 w-full relative">
-          {testimonies.map((testimony, index) => {
-            return <Testimonial key={index} {...testimony} />;
-          })}
+          {testimonies.map((testimony, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, delay: 0.2 + index * 0.15 }}
+            >
+              <Testimonial {...testimony} />
+            </motion.div>
+          ))}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
