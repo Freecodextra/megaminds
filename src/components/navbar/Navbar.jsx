@@ -12,13 +12,15 @@ import { motion, AnimatePresence } from "framer-motion";
 function Navbar() {
   const { navigate, cart, searchTerm, setSearchTerm, user, logout } =
     useAppContext();
-  const [isOpen, setIsOpen] = useState(false); // default to false (closed)
+  const [isOpen, setIsOpen] = useState(false);
+  const [clothingDropdownOpen, setClothingDropdownOpen] = useState(false); // <-- add this
   const [searchOpen, setSearchOpen] = useState(true);
   const navbar = useRef(0);
   const searchbar = useRef(0);
   const toggleMenu = () => {
     setIsOpen((prev) => !prev);
     document.body.style.overflow = !isOpen ? "hidden" : "auto";
+    setClothingDropdownOpen(false); // close dropdown when menu closes
   };
 
   const openSearch = () => {
@@ -80,35 +82,40 @@ function Navbar() {
               >
                 <NavLink to="/">Home</NavLink>
               </li>
-              <li className="group my-4">
-                <div className="flex gap-2 items-center">
+              <li className="my-4">
+                <div
+                  className="flex gap-2 items-center cursor-pointer"
+                  onClick={() => setClothingDropdownOpen((open) => !open)}
+                >
                   <span>Clothing</span>
                   <img
                     src={downArrow}
                     alt="down-arrow"
-                    className="w-[10px] h-[9px]"
+                    className={`w-[10px] h-[9px] transition-transform duration-200 ${clothingDropdownOpen ? "rotate-180" : ""}`}
                   />
                 </div>
-                <ul className="hidden group-hover:block mx-4">
-                  <li
-                    className="hover:text-dark-blue hover:underline my-4"
-                    onClick={toggleMenu}
-                  >
-                    <NavLink to="/men">Men</NavLink>
-                  </li>
-                  <li
-                    className="hover:text-dark-blue hover:underline my-4"
-                    onClick={toggleMenu}
-                  >
-                    <NavLink to="/women">Women</NavLink>
-                  </li>
-                  <li
-                    className="hover:text-dark-blue hover:underline my-4"
-                    onClick={toggleMenu}
-                  >
-                    <NavLink to="/shoes">Shoes</NavLink>
-                  </li>
-                </ul>
+                {clothingDropdownOpen && (
+                  <ul className="mx-4">
+                    <li
+                      className="hover:text-dark-blue hover:underline my-4"
+                      onClick={toggleMenu}
+                    >
+                      <NavLink to="/men">Men</NavLink>
+                    </li>
+                    <li
+                      className="hover:text-dark-blue hover:underline my-4"
+                      onClick={toggleMenu}
+                    >
+                      <NavLink to="/women">Women</NavLink>
+                    </li>
+                    <li
+                      className="hover:text-dark-blue hover:underline my-4"
+                      onClick={toggleMenu}
+                    >
+                      <NavLink to="/shoes">Shoes</NavLink>
+                    </li>
+                  </ul>
+                )}
               </li>
               <li
                 className="hover:text-dark-blue hover:underline my-4"
